@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { 
   Car, Plus, Wrench, AlertTriangle, Calendar, 
-  IndianRupee, Trash2, Gauge, RefreshCw, Zap
+  IndianRupee, Trash2, Gauge, RefreshCw
 } from 'lucide-react';
 import VehicleModal from './VehicleModal';
 import ServiceModal from './ServiceModal';
@@ -106,8 +106,8 @@ export default function Dashboard({ user, onLogout }) {
               <Car className="w-6 h-6" />
             </div>
             <div>
-              <div className="font-bold tracking-tight text-white flex items-center gap-2">
-                AutoTrack <span className="text-[10px] uppercase tracking-wider bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">Go Backend</span>
+              <div className="font-bold tracking-tight text-white text-lg">
+                AutoTrack
               </div>
               <div className="text-xs text-slate-400">Automotive Intelligence & Service Engine</div>
             </div>
@@ -251,18 +251,18 @@ export default function Dashboard({ user, onLogout }) {
 
               <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
                 <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase mb-2">
-                  <span>Redis Engine</span>
-                  <Zap className="w-4 h-4 text-purple-400" />
+                  <span>Avg. Service Cost</span>
+                  <IndianRupee className="w-4 h-4 text-purple-400" />
                 </div>
-                <div className="text-sm font-semibold text-purple-300">
-                  Sub-millisecond Cache
+                <div className="text-2xl font-bold text-white">
+                  ₹{analytics?.average_cost_per_service?.toLocaleString() || '0'}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-2 flex items-center justify-between">
-                  <span>Precomputed in Go</span>
+                <div className="text-[11px] text-slate-500 mt-2 flex items-center justify-between">
+                  <span>Per maintenance visit</span>
                   <button 
                     onClick={() => loadVehicleData(selectedVehicle.id)}
                     className="hover:text-white transition flex items-center gap-1"
-                    title="Refresh cache"
+                    title="Refresh data"
                   >
                     <RefreshCw className={`w-3 h-3 ${refreshingAnalytics ? 'animate-spin' : ''}`} />
                   </button>
