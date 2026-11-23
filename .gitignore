@@ -5,7 +5,9 @@
 *.dylib
 autotrack
 
-frontend/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
 
 .env
 *.local
