@@ -23,7 +23,7 @@ func LoadConfig() *Config {
 
 	return &Config{
 		Port:         getEnv("PORT", "8080"),
-		DatabaseURL:  getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/autotrack?sslmode=disable"),
+		DatabaseURL:  getEnv("DATABASE_URL", "postgres://postgres:postgrespassword@localhost:5432/autotrack?sslmode=disable"),
 		RedisURL:     getEnv("REDIS_URL", "localhost:6379"),
 		JWTSecret:    getEnv("JWT_SECRET", "super-secret-jwt-key-autotrack-2026"),
 		Environment:  getEnv("ENV", "development"),
