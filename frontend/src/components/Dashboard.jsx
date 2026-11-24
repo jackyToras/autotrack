@@ -137,9 +137,6 @@ export default function Dashboard({ user, onLogout }) {
                       GT-9
                     </span>
                   </div>
-                  <div className="text-[10px] tracking-widest uppercase font-mono text-slate-500 -mt-0.5">
-                    Porsche Intelligence Telemetry
-                  </div>
                 </div>
               </div>
             </div>
