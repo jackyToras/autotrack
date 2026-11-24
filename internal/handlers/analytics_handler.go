@@ -34,6 +34,10 @@ func (h *AnalyticsHandler) GetVehicleAnalytics(c *gin.Context) {
 		return
 	}
 
+	if c.Query("refresh") == "true" {
+		h.analyticsService.InvalidateCache(c.Request.Context(), uint(vehicleID))
+	}
+
 	summary, err := h.analyticsService.GetVehicleAnalytics(c.Request.Context(), uint(vehicleID))
 	if err != nil {
 		utils.RespondInternalError(c, "Failed to compute vehicle analytics", err)

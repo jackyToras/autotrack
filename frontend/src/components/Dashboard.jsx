@@ -50,12 +50,12 @@ export default function Dashboard({ user, onLogout }) {
     }
   };
 
-  const loadVehicleData = async (vehicleId) => {
+  const loadVehicleData = async (vehicleId, refresh = false) => {
     try {
       setRefreshingAnalytics(true);
       const [svcRes, anaRes, vRes] = await Promise.all([
         api.getServices(vehicleId),
-        api.getAnalytics(vehicleId),
+        api.getAnalytics(vehicleId, refresh),
         api.getVehicle(vehicleId)
       ]);
       setServices(svcRes.data || []);
@@ -134,6 +134,15 @@ export default function Dashboard({ user, onLogout }) {
   const cycleDistance = 5000;
   const cycleDriven = cycleDistance - Math.max(0, targetMilestone - (selectedVehicle?.current_odometer || 0));
   const progressPct = Math.min(100, Math.max(0, Math.round((cycleDriven / cycleDistance) * 100)));
+
+  const latestServiceDate = services.length > 0 ? new Date(services[0].service_date) : null;
+  let estimatedDueDate = analytics?.next_service_due_estimate ? new Date(analytics.next_service_due_estimate) : null;
+  if (latestServiceDate && estimatedDueDate && estimatedDueDate < latestServiceDate) {
+    const dailyVelocity = analytics?.estimated_daily_mileage || 35;
+    const remainingKm = Math.max(0, (analytics?.next_service_due_mileage || targetMilestone) - (selectedVehicle?.current_odometer || 0));
+    const daysNeeded = Math.min(180, Math.round(remainingKm / dailyVelocity));
+    estimatedDueDate = new Date(latestServiceDate.getTime() + daysNeeded * 24 * 60 * 60 * 1000);
+  }
 
   const activeAlerts = (analytics?.alerts || []).filter((a) => {
     if (a.is_completed) return false;
@@ -345,8 +354,8 @@ export default function Dashboard({ user, onLogout }) {
                 <div className="text-[11px] font-mono text-slate-400 mt-2 flex items-center justify-between">
                   <span>Est. window:</span>
                   <span className="text-slate-300 font-medium">
-                    {analytics?.next_service_due_estimate 
-                      ? new Date(analytics.next_service_due_estimate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) 
+                    {estimatedDueDate 
+                      ? estimatedDueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) 
                       : 'Upcoming'}
                   </span>
                 </div>
@@ -377,7 +386,7 @@ export default function Dashboard({ user, onLogout }) {
                 <div className="text-[11px] font-mono text-slate-400 mt-3 flex items-center justify-between border-t border-white/[0.05] pt-2">
                   <span>Operating health:</span>
                   <button 
-                    onClick={() => loadVehicleData(selectedVehicle.id)}
+                    onClick={() => loadVehicleData(selectedVehicle.id, true)}
                     className="hover:text-white transition flex items-center gap-1 text-slate-400"
                     title="Refresh telemetry"
                   >

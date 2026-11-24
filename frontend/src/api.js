@@ -59,5 +59,5 @@ export const api = {
   deleteService: (vehicleId, logId) => api.request(`/vehicles/${vehicleId}/services/${logId}`, {
     method: 'DELETE',
   }),
-  getAnalytics: (vehicleId) => api.request(`/vehicles/${vehicleId}/analytics`),
+  getAnalytics: (vehicleId, refresh = false) => api.request(`/vehicles/${vehicleId}/analytics${refresh ? '?refresh=true' : ''}`),
 };
