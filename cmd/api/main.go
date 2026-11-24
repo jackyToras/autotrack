@@ -45,6 +45,18 @@ func main() {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware(cfg.AllowOrigins))
 
+	router.GET("/", func(c *gin.Context) {
+		utils.RespondSuccess(c, http.StatusOK, "AutoTrack API is online and healthy", gin.H{
+			"service":     "AutoTrack API",
+			"status":      "online",
+			"environment": cfg.Environment,
+			"timestamp":   time.Now().UTC(),
+		})
+	})
+	router.HEAD("/", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
 	router.GET("/health", func(c *gin.Context) {
 		utils.RespondSuccess(c, http.StatusOK, "AutoTrack API is healthy", gin.H{
 			"status":      "online",
