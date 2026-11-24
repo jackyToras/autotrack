@@ -49,12 +49,17 @@ export default function Dashboard({ user, onLogout }) {
   const loadVehicleData = async (vehicleId) => {
     try {
       setRefreshingAnalytics(true);
-      const [svcRes, anaRes] = await Promise.all([
+      const [svcRes, anaRes, vRes] = await Promise.all([
         api.getServices(vehicleId),
-        api.getAnalytics(vehicleId)
+        api.getAnalytics(vehicleId),
+        api.getVehicle(vehicleId)
       ]);
       setServices(svcRes.data || []);
       setAnalytics(anaRes.data || null);
+      if (vRes?.data) {
+        setSelectedVehicle(vRes.data);
+        setVehicles(prev => prev.map(v => v.id === vehicleId ? vRes.data : v));
+      }
     } catch (err) {
       console.error('Failed to load vehicle data', err);
     } finally {
