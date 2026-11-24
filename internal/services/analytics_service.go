@@ -104,6 +104,10 @@ func (s *AnalyticsService) ComputeVehicleAnalytics(vehicleID uint) (*models.Vehi
 	dueDate := time.Now().Add(time.Duration(daysUntilNext*24) * time.Hour)
 	summary.NextServiceDueEstimate = &dueDate
 
+	database.DB.Model(&models.ServiceAlert{}).
+		Where("vehicle_id = ? AND is_completed = false AND due_mileage < ?", vehicleID, summary.NextServiceDueMileage).
+		Update("is_completed", true)
+
 	var alerts []models.ServiceAlert
 	database.DB.Where("vehicle_id = ? AND is_completed = false", vehicleID).Find(&alerts)
 

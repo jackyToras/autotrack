@@ -120,6 +120,13 @@ export default function Dashboard({ user, onLogout }) {
   const cycleDriven = cycleDistance - Math.max(0, targetMilestone - (selectedVehicle?.current_odometer || 0));
   const progressPct = Math.min(100, Math.max(0, Math.round((cycleDriven / cycleDistance) * 100)));
 
+  const activeAlerts = (analytics?.alerts || []).filter((a) => {
+    if (a.is_completed) return false;
+    if (a.due_mileage && services.some((s) => s.odometer_at_service >= a.due_mileage)) return false;
+    if (a.due_mileage && (selectedVehicle?.current_odometer || 0) >= a.due_mileage && (targetMilestone - (selectedVehicle?.current_odometer || 0)) > 500) return false;
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-transparent text-[#F3F4F6] selection:bg-red-600 selection:text-white">
       <header className="sticky top-0 z-50 bg-[#08090E]/80 backdrop-blur-xl border-b border-white/[0.08]">
@@ -252,7 +259,7 @@ export default function Dashboard({ user, onLogout }) {
           </div>
         ) : (
           <div className="space-y-6">
-            {analytics?.alerts && analytics.alerts.length > 0 && (
+            {activeAlerts.length > 0 && (
               <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/60 via-red-900/30 to-black border border-red-500/50 shadow-[0_0_30px_rgba(220,38,38,0.25)] flex items-start justify-between gap-4 animate-pulse">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-red-600 text-white shadow-lg">
@@ -263,7 +270,7 @@ export default function Dashboard({ user, onLogout }) {
                       SERVICE ALERT // INTERVAL THRESHOLD EXCEEDED
                     </div>
                     <div className="text-sm font-semibold text-white mt-0.5">
-                      {analytics.alerts[0].title}: {analytics.alerts[0].description}
+                      {activeAlerts[0].title}: {activeAlerts[0].description}
                     </div>
                   </div>
                 </div>

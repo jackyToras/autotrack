@@ -65,6 +65,12 @@ func (h *ServiceLogHandler) CreateServiceLog(c *gin.Context) {
 			}
 		}
 
+		if err := tx.Model(&models.ServiceAlert{}).
+			Where("vehicle_id = ? AND is_completed = false AND due_mileage <= ?", vehicleID, req.OdometerAtService).
+			Update("is_completed", true).Error; err != nil {
+			return err
+		}
+
 		return nil
 	})
 
