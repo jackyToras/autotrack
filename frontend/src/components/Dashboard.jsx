@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { 
   Car, Plus, Wrench, AlertTriangle, Calendar, 
-  IndianRupee, Trash2, Gauge, RefreshCw
+  IndianRupee, Trash2, Gauge, RefreshCw, Search,
+  ShieldCheck, ArrowUpRight, Flame, ChevronRight
 } from 'lucide-react';
 import VehicleModal from './VehicleModal';
 import ServiceModal from './ServiceModal';
+import TelemetryChart from './TelemetryChart';
 
 export default function Dashboard({ user, onLogout }) {
   const [vehicles, setVehicles] = useState([]);
@@ -16,6 +18,7 @@ export default function Dashboard({ user, onLogout }) {
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [refreshingAnalytics, setRefreshingAnalytics] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchVehicles();
@@ -28,7 +31,7 @@ export default function Dashboard({ user, onLogout }) {
       setServices([]);
       setAnalytics(null);
     }
-  }, [selectedVehicle]);
+  }, [selectedVehicle?.id]);
 
   const fetchVehicles = async () => {
     try {
@@ -91,7 +94,7 @@ export default function Dashboard({ user, onLogout }) {
   };
 
   const handleDeleteVehicle = async () => {
-    if (!window.confirm(`Are you sure you want to delete ${selectedVehicle.make} ${selectedVehicle.model}? All associated service logs will be removed.`)) return;
+    if (!window.confirm(`Delete ${selectedVehicle.make} ${selectedVehicle.model}? All telemetry logs will be wiped.`)) return;
     try {
       await api.deleteVehicle(selectedVehicle.id);
       const remaining = vehicles.filter(v => v.id !== selectedVehicle.id);
@@ -102,234 +105,321 @@ export default function Dashboard({ user, onLogout }) {
     }
   };
 
+  const filteredServices = services.filter((s) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      s.service_type?.toLowerCase().includes(q) ||
+      s.description?.toLowerCase().includes(q) ||
+      s.performed_by?.toLowerCase().includes(q)
+    );
+  });
+
+  const targetMilestone = analytics?.next_service_due_mileage || (selectedVehicle?.current_odometer + 5000);
+  const cycleDistance = 5000;
+  const cycleDriven = cycleDistance - Math.max(0, targetMilestone - (selectedVehicle?.current_odometer || 0));
+  const progressPct = Math.min(100, Math.max(0, Math.round((cycleDriven / cycleDistance) * 100)));
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/20">
-              <Car className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="font-bold tracking-tight text-white text-lg">
-                AutoTrack
+    <div className="min-h-screen bg-[#05060A] text-[#F3F4F6] selection:bg-red-600 selection:text-white">
+      <header className="sticky top-0 z-50 bg-[#08090E]/95 backdrop-blur-md border-b border-white/[0.07]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="h-16 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2.5 group cursor-pointer">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] group-hover:scale-105 transition-transform duration-300">
+                  <Flame className="w-5 h-5 fill-white text-white" />
+                </div>
+                <div>
+                  <div className="text-lg font-black tracking-wider uppercase text-white flex items-center gap-1.5">
+                    AUTOTRACK
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/[0.08] text-red-400 font-semibold border border-red-500/20">
+                      GT-9
+                    </span>
+                  </div>
+                  <div className="text-[10px] tracking-widest uppercase font-mono text-slate-500 -mt-0.5">
+                    Porsche Intelligence Telemetry
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-slate-400">Automotive Intelligence & Service Engine</div>
+            </div>
+
+            <div className="hidden md:flex flex-1 max-w-md mx-4">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search work orders, components, service bays..."
+                  className="w-full bg-[#10121A] border border-white/[0.08] hover:border-white/[0.15] focus:border-red-500 rounded-full pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10121A] border border-white/[0.06] text-[11px] font-mono text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>ONLINE // {user?.name || 'OPERATOR'}</span>
+              </div>
+
+              <div className="flex items-center gap-2 border-l border-white/[0.08] pl-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 border border-white/[0.15] flex items-center justify-center text-xs font-bold text-white uppercase shadow-inner">
+                  {user?.name ? user.name.slice(0, 2) : 'AU'}
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="text-xs text-slate-400 hover:text-white transition px-2 py-1 rounded hover:bg-white/[0.05]"
+                  title="Sign out of console"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-sm font-medium text-white">{user?.name}</div>
-              <div className="text-xs text-slate-400">{user?.email}</div>
+          <div className="flex items-center justify-between border-t border-white/[0.05] py-2.5 overflow-x-auto gap-2 scrollbar-none">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase mr-1 hidden sm:inline">GARAGE:</span>
+              {vehicles.map((v) => {
+                const isActive = selectedVehicle?.id === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    onClick={() => setSelectedVehicle(v)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${
+                      isActive
+                        ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]'
+                        : 'bg-[#10121A] text-slate-400 hover:text-white hover:bg-[#161824] border border-white/[0.05]'
+                    }`}
+                  >
+                    <Car className="w-3.5 h-3.5" />
+                    <span>{v.year} {v.make} {v.model}</span>
+                    <span className={`text-[10px] font-mono ${isActive ? 'text-red-200' : 'text-slate-500'}`}>
+                      {v.license_plate}
+                    </span>
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => setIsVehicleModalOpen(true)}
+                className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#10121A] hover:bg-white/[0.08] border border-dashed border-white/[0.15] text-slate-300 flex items-center gap-1.5 transition whitespace-nowrap"
+              >
+                <Plus className="w-3.5 h-3.5 text-red-500" /> Add Machine
+              </button>
             </div>
-            <button
-              onClick={onLogout}
-              className="text-xs px-3 py-1.5 border border-slate-700 hover:border-slate-500 rounded-lg text-slate-300 transition"
-            >
-              Sign Out
-            </button>
+
+            {selectedVehicle && (
+              <div className="flex items-center gap-2 pl-4">
+                <button
+                  onClick={() => setIsServiceModalOpen(true)}
+                  className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
+                >
+                  <Wrench className="w-3.5 h-3.5" /> Log Service
+                </button>
+                <button
+                  onClick={handleDeleteVehicle}
+                  className="p-1.5 rounded-full text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition"
+                  title="Delete machine"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-            {vehicles.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setSelectedVehicle(v)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition whitespace-nowrap ${
-                  selectedVehicle?.id === v.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                    : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
-                }`}
-              >
-                <Car className="w-4 h-4" />
-                <span>{v.year} {v.make} {v.model}</span>
-                <span className="text-xs opacity-60">({v.license_plate})</span>
-              </button>
-            ))}
-
-            <button
-              onClick={() => setIsVehicleModalOpen(true)}
-              className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-dashed border-slate-700 hover:border-slate-500 text-slate-300 rounded-xl text-sm font-medium flex items-center gap-1.5 transition whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" /> Add Vehicle
-            </button>
-          </div>
-
-          {selectedVehicle && (
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              <button
-                onClick={() => setIsServiceModalOpen(true)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-xl flex items-center gap-2 transition shadow-lg shadow-emerald-600/20"
-              >
-                <Wrench className="w-4 h-4" /> Log Service
-              </button>
-              <button
-                onClick={handleDeleteVehicle}
-                className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-500/20 transition"
-                title="Delete Vehicle"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {loading ? (
-          <div className="py-20 text-center text-slate-400">Loading your vehicle garage...</div>
+          <div className="py-24 text-center">
+            <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <div className="text-xs font-mono tracking-widest text-slate-500 uppercase">Synchronizing Telemetry...</div>
+          </div>
         ) : vehicles.length === 0 ? (
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center max-w-lg mx-auto">
-            <Car className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-white mb-2">No Vehicles Registered Yet</h3>
-            <p className="text-sm text-slate-400 mb-6">
-              Add your first car to start recording service history and projecting maintenance intervals.
+          <div className="bg-[#0A0B10] border border-white/[0.08] rounded-3xl p-16 text-center max-w-lg mx-auto shadow-2xl relative overflow-hidden">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600/20 to-transparent border border-red-500/30 flex items-center justify-center mx-auto mb-5 text-red-500 shadow-[0_0_30px_rgba(220,38,38,0.2)]">
+              <Car className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Garage Empty</h3>
+            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+              Initialize telemetry tracking by onboarding your primary vehicle.
             </p>
             <button
               onClick={() => setIsVehicleModalOpen(true)}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition shadow-lg shadow-blue-600/30"
+              className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider transition shadow-[0_0_20px_rgba(220,38,38,0.4)]"
             >
-              Register Your Vehicle
+              Register Machine
             </button>
           </div>
         ) : (
-          <div>
+          <div className="space-y-6">
             {analytics?.alerts && analytics.alerts.length > 0 && (
-              <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-semibold text-amber-300 text-sm">
-                    {analytics.alerts[0].title}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/60 via-red-900/30 to-black border border-red-500/50 shadow-[0_0_30px_rgba(220,38,38,0.25)] flex items-start justify-between gap-4 animate-pulse">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-red-600 text-white shadow-lg">
+                    <AlertTriangle className="w-5 h-5" />
                   </div>
-                  <div className="text-xs text-amber-200/80 mt-0.5">
-                    {analytics.alerts[0].description}
+                  <div>
+                    <div className="text-xs font-mono font-bold uppercase tracking-widest text-red-400">
+                      SERVICE ALERT // INTERVAL THRESHOLD EXCEEDED
+                    </div>
+                    <div className="text-sm font-semibold text-white mt-0.5">
+                      {analytics.alerts[0].title}: {analytics.alerts[0].description}
+                    </div>
                   </div>
                 </div>
+                <button
+                  onClick={() => setIsServiceModalOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider whitespace-nowrap transition"
+                >
+                  Book Service
+                </button>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+                <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
                   <span>Current Odometer</span>
-                  <Gauge className="w-4 h-4 text-blue-400" />
+                  <Gauge className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
                 </div>
-                <div className="text-2xl font-bold text-white">
-                  {selectedVehicle?.current_odometer.toLocaleString()} <span className="text-sm font-normal text-slate-400">km</span>
+                <div className="text-3xl font-black tracking-tight text-white font-mono">
+                  {selectedVehicle?.current_odometer.toLocaleString()}
+                  <span className="text-sm font-normal text-slate-500 ml-1">km</span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                  <span>Est. daily:</span>
-                  <span className="text-slate-300 font-medium">{analytics?.estimated_daily_mileage || 35} km/day</span>
-                </div>
-              </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase mb-2">
-                  <span>Next Service Due</span>
-                  <Calendar className="w-4 h-4 text-amber-400" />
-                </div>
-                <div className="text-2xl font-bold text-white">
-                  {analytics?.next_service_due_mileage ? `${analytics.next_service_due_mileage.toLocaleString()} km` : 'N/A'}
-                </div>
-                <div className="text-[11px] text-slate-500 mt-2">
-                  {analytics?.next_service_due_estimate 
-                    ? `Estimated by: ${new Date(analytics.next_service_due_estimate).toLocaleDateString()}` 
-                    : 'Schedule upcoming'}
+                <div className="text-[11px] font-mono text-slate-400 mt-3 flex items-center justify-between border-t border-white/[0.05] pt-2">
+                  <span>Daily velocity:</span>
+                  <span className="text-red-400 font-semibold">{analytics?.estimated_daily_mileage || 35} km/d</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase mb-2">
-                  <span>Total Spent</span>
-                  <IndianRupee className="w-4 h-4 text-emerald-400" />
+              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+                <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
+                  <span>Service Horizon</span>
+                  <Calendar className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
                 </div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-3xl font-black tracking-tight text-white font-mono">
+                  {analytics?.next_service_due_mileage ? `${analytics.next_service_due_mileage.toLocaleString()}` : '5,000'}
+                  <span className="text-sm font-normal text-slate-500 ml-1">km</span>
+                </div>
+                <div className="mt-2.5">
+                  <div className="h-1.5 w-full bg-[#181A25] rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${progressPct > 90 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'bg-amber-500'}`}
+                      style={{ width: `${progressPct}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div className="text-[11px] font-mono text-slate-400 mt-2 flex items-center justify-between">
+                  <span>Est. window:</span>
+                  <span className="text-slate-300 font-medium">
+                    {analytics?.next_service_due_estimate 
+                      ? new Date(analytics.next_service_due_estimate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) 
+                      : 'Upcoming'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+                <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
+                  <span>Total Capital Outlay</span>
+                  <IndianRupee className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                </div>
+                <div className="text-3xl font-black tracking-tight text-white font-mono">
                   ₹{analytics?.total_cost_spent?.toLocaleString() || '0'}
                 </div>
-                <div className="text-[11px] text-slate-500 mt-2">
-                  Across {analytics?.total_service_count || 0} service logs
+                <div className="text-[11px] font-mono text-slate-400 mt-3 flex items-center justify-between border-t border-white/[0.05] pt-2">
+                  <span>History audit:</span>
+                  <span className="text-emerald-400 font-semibold">{analytics?.total_service_count || 0} entries</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase mb-2">
-                  <span>Avg. Service Cost</span>
-                  <IndianRupee className="w-4 h-4 text-purple-400" />
+              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+                <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
+                  <span>Cost Efficiency</span>
+                  <ShieldCheck className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
                 </div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-3xl font-black tracking-tight text-white font-mono">
                   ₹{analytics?.average_cost_per_service?.toLocaleString() || '0'}
                 </div>
-                <div className="text-[11px] text-slate-500 mt-2 flex items-center justify-between">
-                  <span>Per maintenance visit</span>
+                <div className="text-[11px] font-mono text-slate-400 mt-3 flex items-center justify-between border-t border-white/[0.05] pt-2">
+                  <span>Operating health:</span>
                   <button 
                     onClick={() => loadVehicleData(selectedVehicle.id)}
-                    className="hover:text-white transition flex items-center gap-1"
-                    title="Refresh data"
+                    className="hover:text-white transition flex items-center gap-1 text-slate-400"
+                    title="Refresh telemetry"
                   >
+                    <span>Optimal</span>
                     <RefreshCw className={`w-3 h-3 ${refreshingAnalytics ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-              <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+            <TelemetryChart 
+              services={services} 
+              currentOdometer={selectedVehicle?.current_odometer || 0} 
+            />
+
+            <div className="bg-[#0A0B10] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl">
+              <div className="p-5 border-b border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                  <h4 className="text-base font-bold text-white">Maintenance History & Work Orders</h4>
-                  <p className="text-xs text-slate-400 mt-0.5">ACID transactional logs recorded via GORM & PostgreSQL</p>
+                  <div className="text-xs font-mono uppercase tracking-widest text-red-500">Service Audit Logs</div>
+                  <h4 className="text-base font-bold text-white mt-0.5">Historical Work Orders & Component Replacements</h4>
                 </div>
-                <span className="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-full font-medium border border-slate-700">
-                  {services.length} Records
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono bg-[#12141D] text-slate-400 px-3 py-1 rounded-full border border-white/[0.06]">
+                    {filteredServices.length} Records Verified
+                  </span>
+                </div>
               </div>
 
-              {services.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 text-sm">
-                  No service logs recorded yet for this vehicle. Click <span className="text-emerald-400 font-medium">Log Service</span> above to add one.
+              {filteredServices.length === 0 ? (
+                <div className="py-16 text-center text-slate-500 text-xs font-mono">
+                  No telemetry logs matching criteria. Click <span className="text-red-400 font-bold">Log Service</span> to record an event.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-950/50 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-[#0E1018] text-slate-400 uppercase tracking-wider text-[10px] border-b border-white/[0.06]">
                       <tr>
-                        <th className="py-3.5 px-5">Service Type</th>
-                        <th className="py-3.5 px-5">Odometer</th>
-                        <th className="py-3.5 px-5">Date</th>
-                        <th className="py-3.5 px-5">Cost</th>
-                        <th className="py-3.5 px-5">Service Center</th>
-                        <th className="py-3.5 px-5">Notes</th>
-                        <th className="py-3.5 px-5 text-right">Actions</th>
+                        <th className="py-3 px-5">Work Order</th>
+                        <th className="py-3 px-5">Odometer</th>
+                        <th className="py-3 px-5">Date</th>
+                        <th className="py-3 px-5">Expense</th>
+                        <th className="py-3 px-5">Technician / Bay</th>
+                        <th className="py-3 px-5">Diagnostic Notes</th>
+                        <th className="py-3 px-5 text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
-                      {services.map((s) => (
-                        <tr key={s.id} className="hover:bg-slate-800/40 transition">
-                          <td className="py-3.5 px-5 font-medium text-white flex items-center gap-2">
-                            <Wrench className="w-3.5 h-3.5 text-blue-400" />
+                    <tbody className="divide-y divide-white/[0.04]">
+                      {filteredServices.map((s) => (
+                        <tr key={s.id} className="hover:bg-white/[0.02] transition-colors group">
+                          <td className="py-3.5 px-5 font-semibold text-white flex items-center gap-2 font-sans">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                             {s.service_type}
                           </td>
                           <td className="py-3.5 px-5 text-slate-300">
                             {s.odometer_at_service.toLocaleString()} km
                           </td>
-                          <td className="py-3.5 px-5 text-slate-300">
+                          <td className="py-3.5 px-5 text-slate-400">
                             {new Date(s.service_date).toLocaleDateString()}
                           </td>
-                          <td className="py-3.5 px-5 font-semibold text-emerald-400">
+                          <td className="py-3.5 px-5 font-bold text-emerald-400">
                             ₹{s.cost.toLocaleString()}
                           </td>
-                          <td className="py-3.5 px-5 text-slate-400 text-xs">
+                          <td className="py-3.5 px-5 text-slate-400 font-sans">
                             {s.performed_by || '—'}
                           </td>
-                          <td className="py-3.5 px-5 text-slate-400 text-xs max-w-xs truncate">
+                          <td className="py-3.5 px-5 text-slate-500 max-w-xs truncate font-sans">
                             {s.description || '—'}
                           </td>
                           <td className="py-3.5 px-5 text-right">
                             <button
                               onClick={() => handleDeleteService(s.id)}
-                              className="text-slate-500 hover:text-red-400 p-1 transition"
+                              className="text-slate-600 hover:text-red-400 p-1 transition"
                               title="Delete record"
                             >
                               <Trash2 className="w-4 h-4" />
