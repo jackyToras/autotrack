@@ -101,7 +101,18 @@ func (s *AnalyticsService) ComputeVehicleAnalytics(vehicleID uint) (*models.Vehi
 	if daysUntilNext > 365 {
 		daysUntilNext = 180
 	}
-	dueDate := time.Now().Add(time.Duration(daysUntilNext*24) * time.Hour)
+
+	baseDate := latestLog.ServiceDate
+	drivenSince := float64(vehicle.CurrentOdometer - latestLog.OdometerAtService)
+	if drivenSince > 0 {
+		daysDriven := drivenSince / dailyMileage
+		baseDate = baseDate.Add(time.Duration(daysDriven*24) * time.Hour)
+	}
+	if time.Now().After(baseDate) {
+		baseDate = time.Now()
+	}
+
+	dueDate := baseDate.Add(time.Duration(daysUntilNext*24) * time.Hour)
 	summary.NextServiceDueEstimate = &dueDate
 
 	database.DB.Model(&models.ServiceAlert{}).
