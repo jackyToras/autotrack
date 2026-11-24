@@ -54,7 +54,7 @@ export default function TelemetryChart({ services = [], currentOdometer = 0 }) {
     : '';
 
   return (
-    <div className="bg-[#0A0B10] border border-white/[0.08] rounded-2xl p-6 relative overflow-hidden backdrop-blur-xl group hover:border-red-500/30 transition-all duration-300">
+    <div className="bg-[#0A0B10]/80 border border-white/[0.08] rounded-2xl p-6 relative overflow-hidden backdrop-blur-xl group hover:border-red-500/30 transition-all duration-300">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2">

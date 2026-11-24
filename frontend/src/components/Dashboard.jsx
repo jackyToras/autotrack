@@ -121,8 +121,8 @@ export default function Dashboard({ user, onLogout }) {
   const progressPct = Math.min(100, Math.max(0, Math.round((cycleDriven / cycleDistance) * 100)));
 
   return (
-    <div className="min-h-screen bg-[#05060A] text-[#F3F4F6] selection:bg-red-600 selection:text-white">
-      <header className="sticky top-0 z-50 bg-[#08090E]/95 backdrop-blur-md border-b border-white/[0.07]">
+    <div className="min-h-screen bg-transparent text-[#F3F4F6] selection:bg-red-600 selection:text-white">
+      <header className="sticky top-0 z-50 bg-[#08090E]/80 backdrop-blur-xl border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="h-16 flex items-center justify-between gap-4">
             <div className="flex items-center gap-6">
@@ -238,7 +238,7 @@ export default function Dashboard({ user, onLogout }) {
             <div className="text-xs font-mono tracking-widest text-slate-500 uppercase">Synchronizing Telemetry...</div>
           </div>
         ) : vehicles.length === 0 ? (
-          <div className="bg-[#0A0B10] border border-white/[0.08] rounded-3xl p-16 text-center max-w-lg mx-auto shadow-2xl relative overflow-hidden">
+          <div className="bg-[#0A0B10]/85 border border-white/[0.08] rounded-3xl p-16 text-center max-w-lg mx-auto shadow-2xl relative overflow-hidden backdrop-blur-xl">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600/20 to-transparent border border-red-500/30 flex items-center justify-center mx-auto mb-5 text-red-500 shadow-[0_0_30px_rgba(220,38,38,0.2)]">
               <Car className="w-8 h-8" />
             </div>
@@ -280,7 +280,7 @@ export default function Dashboard({ user, onLogout }) {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+              <div className="bg-[#0B0C12]/80 backdrop-blur-md border border-white/[0.08] hover:border-red-500/50 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(220,38,38,0.25)] relative group overflow-hidden">
                 <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
                   <span>Current Odometer</span>
                   <Gauge className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
@@ -295,7 +295,7 @@ export default function Dashboard({ user, onLogout }) {
                 </div>
               </div>
 
-              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+              <div className="bg-[#0B0C12]/80 backdrop-blur-md border border-white/[0.08] hover:border-red-500/50 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(220,38,38,0.25)] relative group overflow-hidden">
                 <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
                   <span>Service Horizon</span>
                   <Calendar className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
@@ -322,7 +322,7 @@ export default function Dashboard({ user, onLogout }) {
                 </div>
               </div>
 
-              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+              <div className="bg-[#0B0C12]/80 backdrop-blur-md border border-white/[0.08] hover:border-red-500/50 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(220,38,38,0.25)] relative group overflow-hidden">
                 <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
                   <span>Total Capital Outlay</span>
                   <IndianRupee className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
@@ -336,7 +336,7 @@ export default function Dashboard({ user, onLogout }) {
                 </div>
               </div>
 
-              <div className="bg-[#0B0C12] border border-white/[0.08] hover:border-red-500/40 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+              <div className="bg-[#0B0C12]/80 backdrop-blur-md border border-white/[0.08] hover:border-red-500/50 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_-10px_rgba(220,38,38,0.25)] relative group overflow-hidden">
                 <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono uppercase tracking-wider mb-2">
                   <span>Cost Efficiency</span>
                   <ShieldCheck className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
@@ -363,7 +363,7 @@ export default function Dashboard({ user, onLogout }) {
               currentOdometer={selectedVehicle?.current_odometer || 0} 
             />
 
-            <div className="bg-[#0A0B10] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl">
+            <div className="bg-[#0A0B10]/80 border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl">
               <div className="p-5 border-b border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-red-500">Service Audit Logs</div>

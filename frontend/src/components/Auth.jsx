@@ -32,8 +32,8 @@ export default function Auth({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#05060A] px-4 selection:bg-red-600 selection:text-white">
-      <div className="max-w-md w-full bg-[#090A10] border border-white/[0.08] rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden backdrop-blur-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-transparent px-4 selection:bg-red-600 selection:text-white">
+      <div className="max-w-md w-full bg-[#090A10]/85 border border-white/[0.12] rounded-3xl p-8 sm:p-10 shadow-[0_25px_60px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-2xl">
         <div className="flex justify-center mb-6">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-white shadow-[0_0_25px_rgba(220,38,38,0.5)]">
             <Flame className="w-6 h-6 fill-white text-white" />
