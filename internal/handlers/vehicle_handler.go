@@ -120,6 +120,7 @@ func (h *VehicleHandler) UpdateVehicle(c *gin.Context) {
 		return
 	}
 
+	h.analyticsService.InvalidateCache(c.Request.Context(), uint(vehicleID))
 	h.analyticsService.AsyncRecompute(uint(vehicleID))
 
 	utils.RespondSuccess(c, http.StatusOK, "Vehicle updated successfully", vehicle)

@@ -79,6 +79,7 @@ func (h *ServiceLogHandler) CreateServiceLog(c *gin.Context) {
 		return
 	}
 
+	h.analyticsService.InvalidateCache(c.Request.Context(), uint(vehicleID))
 	h.analyticsService.AsyncRecompute(uint(vehicleID))
 
 	utils.RespondSuccess(c, http.StatusCreated, "Service log recorded successfully", serviceLog)
@@ -136,6 +137,7 @@ func (h *ServiceLogHandler) DeleteServiceLog(c *gin.Context) {
 		return
 	}
 
+	h.analyticsService.InvalidateCache(c.Request.Context(), uint(vehicleID))
 	h.analyticsService.AsyncRecompute(uint(vehicleID))
 
 	utils.RespondSuccess(c, http.StatusOK, "Service log deleted successfully", nil)

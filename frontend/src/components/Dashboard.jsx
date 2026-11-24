@@ -17,6 +17,7 @@ export default function Dashboard({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [simulatingDrive, setSimulatingDrive] = useState(false);
   const [refreshingAnalytics, setRefreshingAnalytics] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -79,6 +80,20 @@ export default function Dashboard({ user, onLogout }) {
     setServices([newLog, ...services]);
     if (selectedVehicle) {
       loadVehicleData(selectedVehicle.id);
+    }
+  };
+
+  const handleSimulateDrive = async () => {
+    if (!selectedVehicle || simulatingDrive) return;
+    try {
+      setSimulatingDrive(true);
+      const nextOdo = (selectedVehicle.current_odometer || 0) + 1500;
+      await api.updateVehicle(selectedVehicle.id, { current_odometer: nextOdo });
+      await loadVehicleData(selectedVehicle.id);
+    } catch (err) {
+      alert(err.message || 'Failed to simulate driving telemetry');
+    } finally {
+      setSimulatingDrive(false);
     }
   };
 
@@ -296,6 +311,17 @@ export default function Dashboard({ user, onLogout }) {
                 <div className="text-[11px] font-mono text-slate-400 mt-3 flex items-center justify-between border-t border-white/[0.05] pt-2">
                   <span>Daily velocity:</span>
                   <span className="text-red-400 font-semibold">{analytics?.estimated_daily_mileage || 35} km/d</span>
+                </div>
+                <div className="mt-2.5">
+                  <button
+                    onClick={handleSimulateDrive}
+                    disabled={simulatingDrive}
+                    className="w-full py-1.5 px-3 rounded-xl bg-gradient-to-r from-red-600/20 to-red-950/40 hover:from-red-600 hover:to-red-700 text-red-400 hover:text-white border border-red-500/30 text-[10px] font-mono font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-[0_0_15px_rgba(220,38,38,0.4)] disabled:opacity-50 cursor-pointer"
+                    title="Simulate driving +1,500 km forward"
+                  >
+                    <Flame className="w-3.5 h-3.5 fill-current" />
+                    <span>{simulatingDrive ? 'Simulating Drive...' : '+1,500 km Drive'}</span>
+                  </button>
                 </div>
               </div>
 
